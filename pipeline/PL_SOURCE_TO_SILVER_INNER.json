@@ -54,7 +54,7 @@
 				"type": "DatabricksNotebook",
 				"dependsOn": [
 					{
-						"activity": "Switch1",
+						"activity": "Check Source System",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -296,7 +296,7 @@
 				}
 			},
 			{
-				"name": "Switch1",
+				"name": "Check Source System",
 				"type": "Switch",
 				"dependsOn": [
 					{
