@@ -18,7 +18,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "select table_id \nfrom ctrl.table_config \nwhere is_active =1\nand stage ='SILVER_TO_GOLD'",
+							"value": "select table_id,gold_table_name\nfrom ctrl.table_config \nwhere is_active =1\nand stage ='SILVER_TO_GOLD'",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -155,13 +155,9 @@
 			}
 		],
 		"parameters": {
-			"source_system": {
-				"type": "string",
-				"defaultValue": "adls_csv"
-			},
 			"adf_run_id": {
 				"type": "string",
-				"defaultValue": "a8"
+				"defaultValue": "a10"
 			}
 		},
 		"variables": {
