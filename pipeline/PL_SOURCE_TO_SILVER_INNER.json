@@ -83,7 +83,10 @@
 							"value": "@variables('start_time')",
 							"type": "Expression"
 						},
-						"source_file_format": "parquet"
+						"source_file_format": {
+							"value": "@coalesce(activity('Read Table Details').output.firstRow.source_file_forma,'')",
+							"type": "Expression"
+						}
 					}
 				},
 				"linkedServiceName": {
