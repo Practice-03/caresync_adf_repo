@@ -1,5 +1,5 @@
 {
-	"name": "PL_SOURCE_TO_SILVER_MAIN_copy1",
+	"name": "PL_SILVER_TO_GOLD",
 	"properties": {
 		"activities": [
 			{
@@ -34,8 +34,6 @@
 			{
 				"name": "Ingest All Tables",
 				"type": "ForEach",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Read Source Table List",
@@ -52,39 +50,6 @@
 					},
 					"isSequential": false,
 					"activities": [
-						{
-							"name": "Source to silver ingestion",
-							"type": "ExecutePipeline",
-							"dependsOn": [
-								{
-									"activity": "Insert IN-PROGRESS Status",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"pipeline": {
-									"referenceName": "PL_SOURCE_TO_SILVER_INNER",
-									"type": "PipelineReference"
-								},
-								"waitOnCompletion": true,
-								"parameters": {
-									"table_id": {
-										"value": "@item().table_id",
-										"type": "Expression"
-									},
-									"adf_run_id": {
-										"value": "@pipeline().parameters.adf_run_id",
-										"type": "Expression"
-									}
-								}
-							}
-						},
 						{
 							"name": "Insert IN-PROGRESS Status",
 							"type": "Script",
@@ -106,7 +71,7 @@
 									{
 										"type": "Query",
 										"text": {
-											"value": "insert into ctrl.audit_log (adf_run_id,table_id,stage,status,start_time)\nVALUES('@{pipeline().parameters.adf_run_id}',@{item().table_id},'SOURCE_TO_SILVER','IN_PROGRESS',SYSUTCDATETIME())",
+											"value": "insert into ctrl.audit_log (adf_run_id,table_id,stage,status,start_time)\nVALUES('@{pipeline().parameters.adf_run_id}',@{item().table_id},'SILVER_TO_GOLD','IN_PROGRESS',SYSUTCDATETIME())",
 											"type": "Expression"
 										}
 									}
@@ -119,7 +84,7 @@
 							"type": "Script",
 							"dependsOn": [
 								{
-									"activity": "Source to silver ingestion",
+									"activity": "Silver to Gold",
 									"dependencyConditions": [
 										"Failed"
 									]
@@ -143,6 +108,72 @@
 										"type": "Query",
 										"text": {
 											"value": "update ctrl.audit_log\nSET status='FAILED', end_time = SYSUTCDATETIME()\nwhere adf_run_id='@{pipeline().parameters.adf_run_id}' and table_id=@{item().table_id}",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "Silver to Gold",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "Insert IN-PROGRESS Status",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": {
+									"value": "/caresync-repo/caresync-adb-repo/Gold/NB_@{item().gold_table_name}",
+									"type": "Expression"
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureDatabricks",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "Update SUCCESS status",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "Silver to Gold",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "LS_AzureSqlDatabase",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "update ctrl.audit_log\nSET status='SUCCESS', end_time = SYSUTCDATETIME(), records_written = @{activity('Silver to Gold').output.runOutput}\nwhere adf_run_id='@{pipeline().parameters.adf_run_id}' and table_id=@{item().table_id}",
 											"type": "Expression"
 										}
 									}
