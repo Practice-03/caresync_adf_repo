@@ -1,0 +1,12 @@
+{
+	"name": "adf-caresync-new",
+	"properties": {
+		"globalParameters": {
+			"email_receipent": {
+				"type": "string",
+				"value": "practicenow.satya@gmail.com"
+			}
+		}
+	},
+	"location": "centralindia"
+}
