@@ -147,6 +147,19 @@
 								],
 								"scriptBlockExecutionTimeout": "02:00:00"
 							}
+						},
+						{
+							"name": "Update pipiline as Failed",
+							"type": "Fail",
+							"dependsOn": [
+								{
+									"activity": "Source to silver ingestion",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": []
 						}
 					]
 				}
