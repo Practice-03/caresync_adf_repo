@@ -159,7 +159,11 @@
 									]
 								}
 							],
-							"userProperties": []
+							"userProperties": [],
+							"typeProperties": {
+								"message": "Inner pipline failed",
+								"errorCode": "500"
+							}
 						}
 					]
 				}
